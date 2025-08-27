@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comic Launch Success Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #495057;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .content {
+            padding: 0;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .metric-card h3 {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .metric-card .value {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-card .target {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #495057 0%, #6c757d 100%);
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        tr:hover {
+            background: #e3f2fd;
+        }
+        
+        .week-cell {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .task-cell {
+            color: #6c757d;
+            font-size: 0.85em;
+        }
+        
+        .metric-cell {
+            font-weight: 500;
+            color: #28a745;
+        }
+        
+        .input-cell input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            width: 80px;
+            text-align: center;
+        }
+        
+        .input-cell input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-on-track { background: #28a745; }
+        .status-warning { background: #ffc107; }
+        .status-behind { background: #dc3545; }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .funding-tracker {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .funding-amount {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .funding-goal {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .checklist {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .checklist h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+        
+        .checklist-item.completed {
+            opacity: 0.7;
+            text-decoration: line-through;
+        }
+        
+        .notes-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .notes-section h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .notes-section textarea {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Comic Launch Success Tracker</h1>
+            <p>5-Month Pre-Launch Campaign Monitoring Dashboard</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')">Overview</button>
+            <button class="tab" onclick="showTab('month1')">Month 1</button>
+            <button class="tab" onclick="showTab('month2')">Month 2</button>
+            <button class="tab" onclick="showTab('month3')">Month 3</button>
+            <button class="tab" onclick="showTab('month4')">Month 4</button>
+            <button class="tab" onclick="showTab('month5')">Month 5</button>
+            <button class="tab" onclick="showTab('funding')">Funding</button>
+        </div>
+        
+        <div class="content">
+            <div id="overview" class="tab-content active">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Total Followers</h3>
+                        <div class="value" id="total-followers">0</div>
+                        <div class="target">Target: 2,500-4,000</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Email Subscribers</h3>
+                        <div class="value" id="total-email">0</div>
+                        <div class="target">Target: 600-1,000</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Engagement Rate</h3>
+                        <div class="value" id="avg-engagement">0%</div>
+                        <div class="target">Target: 3-5%</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Campaign Progress</h3>
+                        <div class="value" id="campaign-progress">0%</div>
+                        <div class="target">Current Month</div>
+                    </div>
+                </div>
+                
+                <div class="funding-tracker">
+                    <div class="funding-amount">$<span id="total-raised">0</span></div>
+                    <div class="funding-goal">Goal: $5,000-10,000</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="funding-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Followers Target</th>
+                                <th>Actual</th>
+                                <th>Email Target</th>
+                                <th>Actual</th>
+                                <th>Engagement</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="week-cell">Month 1</td>
+                                <td>150-300</td>
+                                <td class="input-cell"><input type="number" id="m1-followers" onchange="updateMetrics()"></td>
+                                <td>50-75</td>
+                                <td class="input-cell"><input type="number" id="m1-email" onchange="updateMetrics()"></td>
+                                <td class="input-cell"><input type="text" id="m1-engagement" placeholder="8-12%"></td>
+                                <td><span class="status-indicator status-on-track"></span>Foundation</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Month 2</td>
+                                <td>400-700</td>
+                                <td class="input-cell"><input type="number" id="m2-followers" onchange="updateMetrics()"></td>
+                                <td>100-150</td>
+                                <td class="input-cell"><input type="number" id="m2-email" onchange="updateMetrics()"></td>
+                                <td class="input-cell"><input type="text" id="m2-engagement" placeholder="6-8%"></td>
+                                <td><span class="status-indicator status-warning"></span>Awareness</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Month 3</td>
+                                <td>800-1,200</td>
+                                <td class="input-cell"><input type="number" id="m3-followers" onchange="updateMetrics()"></td>
+                                <td>200-300</td>
+                                <td class="input-cell"><input type="number" id="m3-email" onchange="updateMetrics()"></td>
+                                <td class="input-cell"><input type="text" id="m3-engagement" placeholder="5-7%"></td>
+                                <td><span class="status-indicator status-behind"></span>Engagement</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Month 4</td>
+                                <td>1,500-2,500</td>
+                                <td class="input-cell"><input type="number" id="m4-followers" onchange="updateMetrics()"></td>
+                                <td>400-600</td>
+                                <td class="input-cell"><input type="number" id="m4-email" onchange="updateMetrics()"></td>
+                                <td class="input-cell"><input type="text" id="m4-engagement" placeholder="4-6%"></td>
+                                <td><span class="status-indicator status-on-track"></span>Pre-Launch</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Month 5</td>
+                                <td>2,500-4,000</td>
+                                <td class="input-cell"><input type="number" id="m5-followers" onchange="updateMetrics()"></td>
+                                <td>600-1,000</td>
+                                <td class="input-cell"><input type="number" id="m5-email" onchange="updateMetrics()"></td>
+                                <td class="input-cell"><input type="text" id="m5-engagement" placeholder="3-5%"></td>
+                                <td><span class="status-indicator status-on-track"></span>Launch</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="month1" class="tab-content">
+                <h2>Month 1: Foundation & Brand Identity</h2>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Key Tasks</th>
+                                <th>Success Metrics</th>
+                                <th>Costs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="week-cell">Week 1</td>
+                                <td class="task-cell">
+                                    • Finalize comic name, tagline, core themes<br>
+                                    • Create brand kit: logo, colors, typography<br>
+                                    • Secure domain and social handles<br>
+                                    • Set up basic website/landing page
+                                </td>
+                                <td class="metric-cell">
+                                    • Brand assets completed<br>
+                                    • 20-30 email signups<br>
+                                    • Social profiles active
+                                </td>
+                                <td>$100-200</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 2</td>
+                                <td class="task-cell">
+                                    • Build landing page with email capture<br>
+                                    • Set up email marketing<br>
+                                    • Create content calendar<br>
+                                    • Research communities and influencers
+                                </td>
+                                <td class="metric-cell">
+                                    • Landing page live<br>
+                                    • 20-week content plan<br>
+                                    • 20+ potential contacts listed
+                                </td>
+                                <td>$0-50</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 3</td>
+                                <td class="task-cell">
+                                    • Post first teaser content<br>
+                                    • Join 3-5 comic communities<br>
+                                    • Start behind-the-scenes docs<br>
+                                    • Send first newsletter
+                                </td>
+                                <td class="metric-cell">
+                                    • First posts published<br>
+                                    • 5-10 new subscribers<br>
+                                    • Engaged with 3+ communities
+                                </td>
+                                <td>$25-75</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 4</td>
+                                <td class="task-cell">
+                                    • Drop first character reveal<br>
+                                    • Post creator intro video<br>
+                                    • Begin weekly posting schedule<br>
+                                    • Research funding opportunities
+                                </td>
+                                <td class="metric-cell">
+                                    • Character post: 50+ engagements<br>
+                                    • 15-25 new followers<br>
+                                    • Creator video: 100+ views
+                                </td>
+                                <td>$0-25</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Month 1 Checklist</h4>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m1-brand"> 
+                        <label for="m1-brand">Complete brand identity kit</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m1-domain"> 
+                        <label for="m1-domain">Secure domain and hosting</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m1-socials"> 
+                        <label for="m1-socials">Set up all social media profiles</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m1-website"> 
+                        <label for="m1-website">Launch landing page with email capture</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m1-content"> 
+                        <label for="m1-content">Create 20-week content calendar</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m1-character"> 
+                        <label for="m1-character">Post first character reveal</label>
+                    </div>
+                </div>
+                
+                <div class="notes-section">
+                    <h4>Month 1 Notes & Observations</h4>
+                    <textarea placeholder="Track what's working, what isn't, and adjustments needed..."></textarea>
+                </div>
+            </div>
+            
+            <div id="month2" class="tab-content">
+                <h2>Month 2: Awareness & Community Building</h2>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Key Tasks</th>
+                                <th>Success Metrics</th>
+                                <th>Costs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="week-cell">Week 5</td>
+                                <td class="task-cell">
+                                    • Post world-building concept art<br>
+                                    • Share first process timelapse<br>
+                                    • Launch weekly newsletter<br>
+                                    • Engage with comic podcasts
+                                </td>
+                                <td class="metric-cell">
+                                    • World post: 75+ engagements<br>
+                                    • Timelapse: 200+ views<br>
+                                    • Newsletter: 25%+ open rate
+                                </td>
+                                <td>$50-100</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 6</td>
+                                <td class="task-cell">
+                                    • Launch Discord server<br>
+                                    • Post second character reveal<br>
+                                    • Cross-promote on webcomic platforms<br>
+                                    • Run first audience poll
+                                </td>
+                                <td class="metric-cell">
+                                    • 25-50 Discord members<br>
+                                    • Poll: 20+ responses<br>
+                                    • 10+ similar campaigns identified
+                                </td>
+                                <td>$25-50</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 7</td>
+                                <td class="task-cell">
+                                    • Host first livestream<br>
+                                    • Launch fan naming contest<br>
+                                    • Share teased page layouts<br>
+                                    • Reach out to indie reviewers
+                                </td>
+                                <td class="metric-cell">
+                                    • Livestream: 15+ viewers<br>
+                                    • Contest: 10+ submissions<br>
+                                    • 1+ reviewer response
+                                </td>
+                                <td>$0-25</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 8</td>
+                                <td class="task-cell">
+                                    • Collaborate with indie creator<br>
+                                    • Send exclusive newsletter content<br>
+                                    • Test paid promotion ($50-75)<br>
+                                    • Post animated teaser
+                                </td>
+                                <td class="metric-cell">
+                                    • Collab: 50+ new followers<br>
+                                    • Newsletter opens +10%<br>
+                                    • Paid ads: 1,000+ impressions
+                                </td>
+                                <td>$75-125</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Month 2 Checklist</h4>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m2-world"> 
+                        <label for="m2-world">Post world-building content</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m2-discord"> 
+                        <label for="m2-discord">Launch Discord community</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m2-character2"> 
+                        <label for="m2-character2">Reveal second character</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m2-livestream"> 
+                        <label for="m2-livestream">Host first livestream</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m2-collab"> 
+                        <label for="m2-collab">Complete creator collaboration</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m2-teaser"> 
+                        <label for="m2-teaser">Post animated teaser</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="month3" class="tab-content">
+                <h2>Month 3: Engagement & Funding Prep</h2>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Key Tasks</th>
+                                <th>Success Metrics</th>
+                                <th>Costs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="week-cell">Week 9</td>
+                                <td class="task-cell">
+                                    • Reveal third major character<br>
+                                    • Launch Discord events<br>
+                                    • Share exclusive concept art<br>
+                                    • Begin Patreon setup
+                                </td>
+                                <td class="metric-cell">
+                                    • Character reveal: 100+ engagements<br>
+                                    • Discord: 50+ weekly active users<br>
+                                    • Patreon framework ready
+                                </td>
+                                <td>$50-100</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 10</td>
+                                <td class="task-cell">
+                                    • Create motion comic teaser<br>
+                                    • Host creator Q&A livestream<br>
+                                    • Launch fan art contest<br>
+                                    • Connect with POC media outlets
+                                </td>
+                                <td class="metric-cell">
+                                    • Motion teaser: 500+ views<br>
+                                    • Q&A: 25+ viewers<br>
+                                    • Fan art: 5+ submissions
+                                </td>
+                                <td>$100-200</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 11</td>
+                                <td class="task-cell">
+                                    • Soft-launch Patreon<br>
+                                    • Post fourth character reveal<br>
+                                    • Run community challenge<br>
+                                    • Draft press kit materials
+                                </td>
+                                <td class="metric-cell">
+                                    • Patreon: 10-15 patrons<br>
+                                    • UGC from contest<br>
+                                    • Press kit completed
+                                </td>
+                                <td>$25-75</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 12</td>
+                                <td class="task-cell">
+                                    • Announce Kickstarter date<br>
+                                    • Preview campaign rewards<br>
+                                    • Send support newsletter<br>
+                                    • Finalize campaign video
+                                </td>
+                                <td class="metric-cell">
+                                    • Announcement: 150+ engagements<br>
+                                    • Newsletter: 35%+ open rate<br>
+                                    • Campaign framework ready
+                                </td>
+                                <td>$200-300</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Month 3 Checklist</h4>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m3-character3"> 
+                        <label for="m3-character3">Reveal third character</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m3-motion"> 
+                        <label for="m3-motion">Create motion comic teaser</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m3-patreon"> 
+                        <label for="m3-patreon">Launch Patreon</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m3-fanart"> 
+                        <label for="m3-fanart">Run fan art contest</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m3-kickstarter"> 
+                        <label for="m3-kickstarter">Announce Kickstarter date</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m3-press"> 
+                        <label for="m3-press">Complete press kit</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="month4" class="tab-content">
+                <h2>Month 4: Pre-Launch Buzz & Funding</h2>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Key Tasks</th>
+                                <th>Success Metrics</th>
+                                <th>Costs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="week-cell">Week 13</td>
+                                <td class="task-cell">
+                                    • Launch Kickstarter pre-campaign<br>
+                                    • Share exclusive preview pages<br>
+                                    • Post campaign trailer<br>
+                                    • Send press kits to media
+                                </td>
+                                <td class="metric-cell">
+                                    • Pre-campaign: 100+ followers<br>
+                                    • Trailer: 1,000+ views<br>
+                                    • Media: 3+ responses
+                                </td>
+                                <td>$100-200</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 14</td>
+                                <td class="task-cell">
+                                    • Post fifth character reveal<br>
+                                    • Use trending TikTok audio<br>
+                                    • Secure podcast interviews<br>
+                                    • Run paid promotion
+                                </td>
+                                <td class="metric-cell">
+                                    • Character: 200+ engagements<br>
+                                    • TikTok trend: 1,000+ views<br>
+                                    • Interviews scheduled
+                                </td>
+                                <td>$150-250</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 15</td>
+                                <td class="task-cell">
+                                    • Host live drawing session<br>
+                                    • Launch press outreach<br>
+                                    • Share creation documentary<br>
+                                    • Create early-bird urgency
+                                </td>
+                                <td class="metric-cell">
+                                    • Live session: 50+ viewers<br>
+                                    • Press: 5+ responses<br>
+                                    • FOMO engagement increase
+                                </td>
+                                <td>$100-150</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 16</td>
+                                <td class="task-cell">
+                                    • Release final teaser<br>
+                                    • Send urgent newsletter<br>
+                                    • Maximize Discord engagement<br>
+                                    • Coordinate signal boost
+                                </td>
+                                <td class="metric-cell">
+                                    • Final teaser: 300+ engagements<br>
+                                    • Newsletter: 40%+ open rate<br>
+                                    • Discord activity spike
+                                </td>
+                                <td>$50-100</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Month 4 Checklist</h4>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m4-prelaunch"> 
+                        <label for="m4-prelaunch">Launch Kickstarter pre-campaign</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m4-trailer"> 
+                        <label for="m4-trailer">Release campaign trailer</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m4-character5"> 
+                        <label for="m4-character5">Reveal fifth character</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m4-interviews"> 
+                        <label for="m4-interviews">Secure media interviews</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m4-live"> 
+                        <label for="m4-live">Host live drawing session</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m4-teaser"> 
+                        <label for="m4-teaser">Release final pre-launch teaser</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="month5" class="tab-content">
+                <h2>Month 5: Launch & Conversion</h2>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Key Tasks</th>
+                                <th>Success Metrics</th>
+                                <th>Costs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="week-cell">Week 17</td>
+                                <td class="task-cell">
+                                    • Launch Kickstarter officially<br>
+                                    • Post major world lore<br>
+                                    • Host "Ask Me Anything"<br>
+                                    • Coordinate social media blitz
+                                </td>
+                                <td class="metric-cell">
+                                    • 30% funding in 48 hours<br>
+                                    • Launch posts: 400+ engagements<br>
+                                    • AMA: 75+ participants
+                                </td>
+                                <td>$200-300</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 18</td>
+                                <td class="task-cell">
+                                    • Release Issue #0 preview<br>
+                                    • Run major ad campaign<br>
+                                    • Share backer testimonials<br>
+                                    • Announce stretch goals
+                                </td>
+                                <td class="metric-cell">
+                                    • Preview: 100+ downloads<br>
+                                    • Ads: 10,000+ impressions<br>
+                                    • 70% funding reached
+                                </td>
+                                <td>$300-400</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 19</td>
+                                <td class="task-cell">
+                                    • Share fan reactions<br>
+                                    • Post daily countdown<br>
+                                    • Create final week urgency<br>
+                                    • Push stretch goals
+                                </td>
+                                <td class="metric-cell">
+                                    • Organic fan content growth<br>
+                                    • Sustained engagement<br>
+                                    • 100%+ funding reached
+                                </td>
+                                <td>$100-200</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Week 20</td>
+                                <td class="task-cell">
+                                    • Release Issue #1 digitally<br>
+                                    • Host virtual launch party<br>
+                                    • Celebrate funding success<br>
+                                    • Plan Issue #2 teasers
+                                </td>
+                                <td class="metric-cell">
+                                    • Campaign: 120%+ funding<br>
+                                    • Issue #1: 100+ downloads<br>
+                                    • Launch party: 100+ attendees
+                                </td>
+                                <td>$50-150</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Month 5 Checklist</h4>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m5-launch"> 
+                        <label for="m5-launch">Launch Kickstarter campaign</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m5-ama"> 
+                        <label for="m5-ama">Host Ask Me Anything session</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m5-preview"> 
+                        <label for="m5-preview">Release Issue #0 preview</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m5-stretch"> 
+                        <label for="m5-stretch">Announce stretch goals</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m5-issue1"> 
+                        <label for="m5-issue1">Release Issue #1</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="m5-party"> 
+                        <label for="m5-party">Host launch party</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="funding" class="tab-content">
+                <h2>Funding Strategy & Tracker</h2>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Goal Amount</h3>
+                        <div class="value">$<span id="funding-goal">8000</span></div>
+                        <div class="target">Conservative Target</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Current Raised</h3>
+                        <div class="value">$<span id="current-raised">0</span></div>
+                        <div class="target"><input type="number" id="raised-input" placeholder="Enter amount" onchange="updateFunding()"></div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Backers</h3>
+                        <div class="value" id="backer-count">0</div>
+                        <div class="target"><input type="number" id="backer-input" placeholder="Enter count" onchange="updateFunding()"></div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Average Pledge</h3>
+                        <div class="value">$<span id="avg-pledge">0</span></div>
+                        <div class="target">Auto-calculated</div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Funding Source</th>
+                                <th>Type</th>
+                                <th>Amount Range</th>
+                                <th>Application Period</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="week-cell">Kickstarter Campaign</td>
+                                <td>Crowdfunding</td>
+                                <td>$5,000-15,000</td>
+                                <td>Month 4-5</td>
+                                <td><span class="status-indicator status-on-track"></span>Primary</td>
+                                <td>Main funding source</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Awesome Foundation</td>
+                                <td>Micro-grant</td>
+                                <td>$1,000</td>
+                                <td>Month 1-2</td>
+                                <td><span class="status-indicator status-warning"></span>Applied</td>
+                                <td>Monthly applications</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">We Need Diverse Books</td>
+                                <td>Grant</td>
+                                <td>$2,000-5,000</td>
+                                <td>Month 2-3</td>
+                                <td><span class="status-indicator status-behind"></span>Pending</td>
+                                <td>Walter Dean Myers Grant</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Black Speculative Arts</td>
+                                <td>Grant</td>
+                                <td>$1,000-3,000</td>
+                                <td>Month 1-3</td>
+                                <td><span class="status-indicator status-warning"></span>Research</td>
+                                <td>Movement micro-grants</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Local Arts Council</td>
+                                <td>Grant</td>
+                                <td>$500-2,000</td>
+                                <td>Month 1-2</td>
+                                <td><span class="status-indicator status-on-track"></span>Applied</td>
+                                <td>City/state specific</td>
+                            </tr>
+                            <tr>
+                                <td class="week-cell">Patreon</td>
+                                <td>Recurring</td>
+                                <td>$100-500/month</td>
+                                <td>Month 3-5</td>
+                                <td><span class="status-indicator status-on-track"></span>Active</td>
+                                <td>Ongoing support</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="checklist">
+                    <h4>Kickstarter Reward Tiers</h4>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tier1"> 
+                        <label for="tier1">$5 - Digital comic + wallpaper pack</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tier2"> 
+                        <label for="tier2">$15 - Digital comic + sticker pack</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tier3"> 
+                        <label for="tier3">$30 - Physical comic + digital extras</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tier4"> 
+                        <label for="tier4">$50 - Signed copy + character art print</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tier5"> 
+                        <label for="tier5">$100 - Complete package + credits</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tier6"> 
+                        <label for="tier6">$250 - Original sketch + all above</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.getElementsByClassName('tab-content');
+            for (let content of contents) {
+                content.classList.remove('active');
+            }
+            
+            // Remove active from all tabs
+            const tabs = document.getElementsByClassName('tab');
+            for (let tab of tabs) {
+                tab.classList.remove('active');
+            }
+            
+            // Show selected tab content and mark tab as active
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function updateMetrics() {
+            let totalFollowers = 0;
+            let totalEmail = 0;
+            
+            for (let i = 1; i <= 5; i++) {
+                const followers = parseInt(document.getElementById(`m${i}-followers`).value) || 0;
+                const email = parseInt(document.getElementById(`m${i}-email`).value) || 0;
+                
+                totalFollowers = Math.max(totalFollowers, followers);
+                totalEmail = Math.max(totalEmail, email);
+            }
+            
+            document.getElementById('total-followers').textContent = totalFollowers;
+            document.getElementById('total-email').textContent = totalEmail;
+            
+            // Calculate progress (assuming Month 5 is 100%)
+            const currentMonth = getCurrentMonth();
+            document.getElementById('campaign-progress').textContent = `${currentMonth * 20}%`;
+        }
+        
+        function getCurrentMonth() {
+            // This would be dynamically calculated based on current date
+            // For now, returning 1 as default
+            return 1;
+        }
+        
+        function updateFunding() {
+            const raised = parseInt(document.getElementById('raised-input').value) || 0;
+            const backers = parseInt(document.getElementById('backer-input').value) || 0;
+            const goal = parseInt(document.getElementById('funding-goal').textContent);
+            
+            document.getElementById('current-raised').textContent = raised;
+            document.getElementById('total-raised').textContent = raised;
+            document.getElementById('backer-count').textContent = backers;
+            
+            const avgPledge = backers > 0 ? Math.round(raised / backers) : 0;
+            document.getElementById('avg-pledge').textContent = avgPledge;
+            
+            const percentage = Math.min((raised / goal) * 100, 100);
+            document.getElementById('funding-progress').style.width = `${percentage}%`;
+        }
+        
+        // Add checkbox completion tracking
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox') {
+                const item = e.target.closest('.checklist-item');
+                if (e.target.checked) {
+                    item.classList.add('completed');
+                } else {
+                    item.classList.remove('completed');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
